@@ -2,7 +2,7 @@
 
 ## Libraries
 * Image Fromat Libraries  
-    * [ ] HVEC - H.265 High Efficiency Video Coding
+    * [x] HVEC - H.265 High Efficiency Video Coding
         - `libde265-1.0.16.tar.gz`
     * [ ] ISO/IEC 23008-12:2017 HEIF and AVIF file format decoder and encoder
         - `libheif-1.20.2.tar.gz`
@@ -28,8 +28,8 @@
 * Implement targets for each step of the build process
 * Include *Linux to Windows* cross-compilation using the `MinGW` compiler
 * Expected targets:
-    - [ ] `linux_source_build_libde265`
-    - [ ] `mingw_source_build_libde265`
+    - [x] `linux_source_build_libde265`
+    - [x] `mingw_source_build_libde265`
     - [ ] `linux_source_build_libheif` (depends on `linux_source_build_libde265`)
     - [ ] `mingw_source_build_libheif` (depends on `mingw_source_build_libde265`)
     - [ ] `linux_source_build_libjpeg` 

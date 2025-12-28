@@ -37,7 +37,7 @@ linux-build: ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./src/main.c
 		mv ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./build/linux; \
 		echo "Moved 'libde265' to './build/linux'"; \
 	fi
-	$(CXX) -Wall -Wextra -o ./build/linux/main src/main.c  $(LD_FLAGS) $(LD_LIBS)
+	$(CXX) -Wall -Wextra -o ./build/linux/main src/main.c $(LD_FLAGS) $(LD_LIBS)
 	@echo "DONE"
 
 # Expand the library tarball (windows/MinGW)
@@ -64,14 +64,18 @@ linux-build: ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./src/main.c
 	cmake --build . -- -j 8; \
 	cmake --install . --prefix ./dist/libde265
 
-win64-build: ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265
+W64_LD_LIBDE_FLAGS:=-L./build/windows/libde265/lib -Wl,-rpath,'$$ORIGIN/./libde265/lib'
+W64_LD_FLAGS:=$(W64_LD_LIBDE_FLAGS)
+W64_LD_LIBS:=-lde265
+
+windows-build: ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265
 	@mkdir -p "./build"
 	@mkdir -p "./build/windows"
 	@if [ ! -d "./build/windows/libde265" ]; then \
 		mv ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265 ./build/windows; \
 		echo "Moved 'libde265' to './build/windows'"; \
 	fi
-	error("Not implemented yet")
+	x86_64-w64-mingw32-gcc -Wall -Wextra -o ./build/windows/main src/main.c $(W64_LD_FLAGS) $(W64_LD_LIBS)
 	@echo "DONE"
 
 # --- end libde265 ---------------------------------------------------------------------------------

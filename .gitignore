@@ -1,2 +1,3 @@
 build/
 thirdparty/libde265-1.0.16-linux
+thirdparty/libde265-1.0.16-mingw
