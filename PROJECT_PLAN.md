@@ -29,7 +29,7 @@
 * Include *Linux to Windows* cross-compilation using the `MinGW` compiler
 * Expected targets:
     - [x] `linux_source_build_libde265`
-    - [x] `mingw_source_build_libde265`
+  target  - [x] `mingw_source_build_libde265`
     - [ ] `linux_source_build_libheif` (depends on `linux_source_build_libde265`)
     - [ ] `mingw_source_build_libheif` (depends on `mingw_source_build_libde265`)
     - [ ] `linux_source_build_libjpeg` 

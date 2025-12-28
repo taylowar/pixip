@@ -1,6 +1,9 @@
 # Makefile for pixip
 
-CXX = clang++
+CXX=clang++
+MINGW_CXX=x86_64-w64-mingw32-gcc
+
+.PHONY: clean
 
 # --- libde265 -------------------------------------------------------------------------------------
 
@@ -75,7 +78,16 @@ windows-build: ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265
 		mv ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265 ./build/windows; \
 		echo "Moved 'libde265' to './build/windows'"; \
 	fi
-	x86_64-w64-mingw32-gcc -Wall -Wextra -o ./build/windows/main src/main.c $(W64_LD_FLAGS) $(W64_LD_LIBS)
+	$(MINGW_CXX) -Wall -Wextra -o ./build/windows/main src/main.c $(W64_LD_FLAGS) $(W64_LD_LIBS)
 	@echo "DONE"
 
 # --- end libde265 ---------------------------------------------------------------------------------
+
+clean:
+	@rm -rf ./build
+	@echo "Removed './build' directory"
+	@rm -rf ./thirdparty/libde265-1.0.16-linux
+	@echo "Removed './thirdparty/libde265-1.0.16-linux' directory"
+	@rm -rf ./thirdparty/libde265-1.0.16-mingw
+	@echo "Removed './thirdparty/libde265-1.0.16-mingw' directory"
+
