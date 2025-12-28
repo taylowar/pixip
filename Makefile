@@ -1,24 +1,22 @@
-# Makefile for ICS
+# Makefile for pixip
 
-main: prepare_build_directory src/main.c
-	$(CC) -Wall -Wextra -o ./build/main src/main.c
+CXX = clang++
 
+# --- libde265 -------------------------------------------------------------------------------------
 
-# --------------------------------------------------------------------------------------------------
-
+# Expand the library tarball (linux)
 ./thirdparty/libde265-1.0.16-linux: ./thirdparty/libde265-1.0.16.tar.gz
-	cd ./thirdparty; \
+	@cd ./thirdparty; \
 	tar -xvf libde265-1.0.16.tar.gz; \
 	mv libde265-1.0.16 libde265-1.0.16-linux; \
 	echo "'./thirdparty/libde265-1.0.16-linux' extracted"; \
 
+# Build libde265 (linux)
 ./thirdparty/libde265-1.0.16-linux/build/dist/libde265: ./thirdparty/libde265-1.0.16-linux
-	# Create build directory \
-	cd ./thirdparty/libde265-1.0.16-linux; \
-	mkdir build; \
-	cd build;
-	# CMake \
-	cd ./thirdparty/libde265-1.0.16-linux/build; \
+	# libde265 build directory
+	@mkdir -p ./thirdparty/libde265-1.0.16-linux/build
+	# CMake (linux)
+	@cd ./thirdparty/libde265-1.0.16-linux/build; \
 	cmake \
 		-DCMAKE_BUILD_TYPE=release \
 		-DCMAKE_INSTALL_PREFIX=./install \
@@ -27,18 +25,53 @@ main: prepare_build_directory src/main.c
 	cmake --build . -- -j 8; \
 	cmake --install . --prefix ./dist/libde265
 
-build: ./thirdparty/libde265-1.0.16-linux/build/dist/libde265
+
+LD_LIBDE_FLAGS:=-L./build/linux/libde265/lib -Wl,-rpath,'$$ORIGIN/./libde265/lib'
+LD_FLAGS:=$(LD_LIBDE_FLAGS)
+LD_LIBS:=-lde265
+
+linux-build: ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./src/main.c
 	@mkdir -p "./build"
-	@if [ ! -d "./build/libde265" ]; then \
-		mv ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./build; \
-		echo "Moved 'libde265' to './build'"; \
+	@mkdir -p "./build/linux"
+	@if [ ! -d "./build/linux/libde265" ]; then \
+		mv ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./build/linux; \
+		echo "Moved 'libde265' to './build/linux'"; \
 	fi
+	$(CXX) -Wall -Wextra -o ./build/linux/main src/main.c  $(LD_FLAGS) $(LD_LIBS)
 	@echo "DONE"
 
+# Expand the library tarball (windows/MinGW)
+./thirdparty/libde265-1.0.16-mingw: ./thirdparty/libde265-1.0.16.tar.gz
+	@ cd ./thirdparty; \
+	tar -xvf libde265-1.0.16.tar.gz
+	@mv ./thirdparty/libde265-1.0.16 ./thirdparty/libde265-1.0.16-mingw
+	echo "'./thirdparty/libde265-1.0.16-mingw' extracted"
 
-# --------------------------------------------------------------------------------------------------
-.PHONY:
-prepare_build_directory:
-	@if [ ! ! -d "./build" ]; then \
-		mkdir ./build; \
-	fi 
+# Build libde265 (windows/MinGW)
+./thirdparty/libde265-1.0.16-mingw/build/dist/libde265: ./thirdparty/libde265-1.0.16-mingw
+	# libde265 build directory
+	@mkdir -p ./thirdparty/libde265-1.0.16-mingw/build
+	# copy mingw cmake toolchain
+	@cp ./mingw-libde265-toolchain.cmake ./thirdparty/libde265-1.0.16-mingw/
+	# CMake (mingw)
+	@cd ./thirdparty/libde265-1.0.16-mingw/build; \
+	cmake \
+		-DCMAKE_TOOLCHAIN_FILE=mingw-libde265-toolchain.cmake \
+		-DCMAKE_BUILD_TYPE=release \
+		-DCMAKE_INSTALL_PREFIX=./install \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		..; \
+	cmake --build . -- -j 8; \
+	cmake --install . --prefix ./dist/libde265
+
+win64-build: ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265
+	@mkdir -p "./build"
+	@mkdir -p "./build/windows"
+	@if [ ! -d "./build/windows/libde265" ]; then \
+		mv ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265 ./build/windows; \
+		echo "Moved 'libde265' to './build/windows'"; \
+	fi
+	error("Not implemented yet")
+	@echo "DONE"
+
+# --- end libde265 ---------------------------------------------------------------------------------
