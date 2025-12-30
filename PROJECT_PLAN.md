@@ -4,7 +4,7 @@
 * Image Fromat Libraries  
     * [x] HVEC - H.265 High Efficiency Video Coding
         - `libde265-1.0.16.tar.gz`
-    * [ ] ISO/IEC 23008-12:2017 HEIF and AVIF file format decoder and encoder
+    * [x] ISO/IEC 23008-12:2017 HEIF and AVIF file format decoder and encoder
         - `libheif-1.20.2.tar.gz`
     * [ ] JPEG image codec (for JPEG image compression and decompression)
         - `libjpeg-turbo-3.1.2.tar.gz`
@@ -30,11 +30,11 @@
 * Expected targets:
     - [x] `linux_source_build_libde265`
   target  - [x] `mingw_source_build_libde265`
-    - [ ] `linux_source_build_libheif` (depends on `linux_source_build_libde265`)
-    - [ ] `mingw_source_build_libheif` (depends on `mingw_source_build_libde265`)
+    - [x] `linux_source_build_libheif` (depends on `linux_source_build_libde265`)
+    - [x] `mingw_source_build_libheif` (depends on `mingw_source_build_libde265`)
     - [ ] `linux_source_build_libjpeg` 
     - [ ] `mingw_source_build_libjpeg`
-    - [ ] `clean`
+    - [x] `clean`
         - removes all unzipped library sources
         - removes all build libraries
         - removes all build targets

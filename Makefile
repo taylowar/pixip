@@ -1,9 +1,9 @@
 # Makefile for pixip
 
 CXX=clang++
-MINGW_CXX=x86_64-w64-mingw32-gcc
+MINGW_CXX=x86_64-w64-mingw32-g++
 
-.PHONY: clean
+.PHONY: clean linux_source_build_libde265 linux_source_build_libheif
 
 # --- libde265 -------------------------------------------------------------------------------------
 
@@ -28,20 +28,13 @@ MINGW_CXX=x86_64-w64-mingw32-gcc
 	cmake --build . -- -j 8; \
 	cmake --install . --prefix ./dist/libde265
 
-
-LD_LIBDE_FLAGS:=-L./build/linux/libde265/lib -Wl,-rpath,'$$ORIGIN/./libde265/lib'
-LD_FLAGS:=$(LD_LIBDE_FLAGS)
-LD_LIBS:=-lde265
-
-linux-build: ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./src/main.c
+linux_source_build_libde265: ./thirdparty/libde265-1.0.16-linux/build/dist/libde265
 	@mkdir -p "./build"
 	@mkdir -p "./build/linux"
 	@if [ ! -d "./build/linux/libde265" ]; then \
 		mv ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./build/linux; \
 		echo "Moved 'libde265' to './build/linux'"; \
 	fi
-	$(CXX) -Wall -Wextra -o ./build/linux/main src/main.c $(LD_FLAGS) $(LD_LIBS)
-	@echo "DONE"
 
 # Expand the library tarball (windows/MinGW)
 ./thirdparty/libde265-1.0.16-mingw: ./thirdparty/libde265-1.0.16.tar.gz
@@ -67,21 +60,130 @@ linux-build: ./thirdparty/libde265-1.0.16-linux/build/dist/libde265 ./src/main.c
 	cmake --build . -- -j 8; \
 	cmake --install . --prefix ./dist/libde265
 
-W64_LD_LIBDE_FLAGS:=-L./build/windows/libde265/lib -Wl,-rpath,'$$ORIGIN/./libde265/lib'
-W64_LD_FLAGS:=$(W64_LD_LIBDE_FLAGS)
-W64_LD_LIBS:=-lde265
-
-windows-build: ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265
+mingw_source_build_libde265: ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265
 	@mkdir -p "./build"
 	@mkdir -p "./build/windows"
 	@if [ ! -d "./build/windows/libde265" ]; then \
 		mv ./thirdparty/libde265-1.0.16-mingw/build/dist/libde265 ./build/windows; \
 		echo "Moved 'libde265' to './build/windows'"; \
 	fi
-	$(MINGW_CXX) -Wall -Wextra -o ./build/windows/main src/main.c $(W64_LD_FLAGS) $(W64_LD_LIBS)
-	@echo "DONE"
 
 # --- end libde265 ---------------------------------------------------------------------------------
+
+# --- libheif --------------------------------------------------------------------------------------
+
+# Expand the library tarball (linux)
+./thirdparty/libheif-1.20.2-linux: ./thirdparty/libheif-1.20.2.tar.gz
+	@cd ./thirdparty; \
+	tar -xvf libheif-1.20.2.tar.gz; \
+	mv libheif-1.20.2 libheif-1.20.2-linux; \
+	echo "'./thirdparty/libheif-1.20.2-linux' extracted"; \
+
+# Build libheif (linux)
+./thirdparty/libheif-1.20.2-linux/build/dist/libheif: linux_source_build_libde265 ./thirdparty/libheif-1.20.2-linux
+	# libde265 build directory
+	@mkdir -p ./thirdparty/libheif-1.20.2-linux/build
+	# CMake (linux)
+	@cd ./thirdparty/libheif-1.20.2-linux/build; \
+	cmake \
+	cmake \
+		-DCMAKE_BUILD_TYPE=release \
+		-DCMAKE_INSTALL_PREFIX=./install \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		-DLIBDE265_INCLUDE_DIR=/home/tilc/dev/programming/c/pixip/build/linux/libde265/include \
+		-DLIBDE265_LIBRARY=/home/tilc/dev/programming/c/pixip/build/linux/libde265/lib/libde265.so \
+		..; \
+	cmake --build . -- -j 8; \
+	cmake --install . --prefix ./dist/libheif
+	# Making NeoVim see the build library
+	ln -sf ./thirdparty/libheif-1.20.2-linux/build/compile_commands.json ./compile_commands.json
+
+linux_source_build_libheif: ./thirdparty/libheif-1.20.2-linux/build/dist/libheif
+	@mkdir -p "./build"
+	@mkdir -p "./build/linux"
+	@if [ ! -d "./build/linux/libheif" ]; then \
+		mv ./thirdparty/libheif-1.20.2-linux/build/dist/libheif ./build/linux; \
+		echo "Moved 'libheif' to './build/linux'"; \
+	fi
+
+# Expand the library tarball (windows/MinGW)
+./thirdparty/libheif-1.20.2-mingw: ./thirdparty/libheif-1.20.2.tar.gz
+	@cd ./thirdparty; \
+	tar -xvf libheif-1.20.2.tar.gz; \
+	mv libheif-1.20.2 libheif-1.20.2-mingw; \
+	echo "'./thirdparty/libheif-1.20.2-mingw' extracted"; \
+
+# Build libheif (windows/MinGW)
+./thirdparty/libheif-1.20.2-mingw/build/dist/libheif: mingw_source_build_libde265 ./thirdparty/libheif-1.20.2-mingw
+	# libheif build directory
+	@mkdir -p ./thirdparty/libheif-1.20.2-mingw/build
+	# copy mingw cmake toolchain
+	@cp ./mingw-libheif-toolchain.cmake ./thirdparty/libheif-1.20.2-mingw/
+	# CMake (mingw)
+	@cd ./thirdparty/libheif-1.20.2-mingw/build; \
+	cmake \
+		-DCMAKE_TOOLCHAIN_FILE=mingw-libheif-toolchain.cmake \
+		-DCMAKE_BUILD_TYPE=release \
+		-DCMAKE_INSTALL_PREFIX=./install \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		-DLIBDE265_INCLUDE_DIR=/home/tilc/dev/programming/c/pixip/build/windows/libde265/include \
+		-DLIBDE265_LIBRARY=/home/tilc/dev/programming/c/pixip/build/windows/libde265/lib/libde265.dll.a \
+		..; \
+	cmake --build . -- -j 8; \
+	cmake --install . --prefix ./dist/libheif
+
+mingw_source_build_libheif: ./thirdparty/libheif-1.20.2-mingw/build/dist/libheif
+	@mkdir -p "./build"
+	@mkdir -p "./build/windows"
+	@if [ ! -d "./build/windows/libheif" ]; then \
+		mv ./thirdparty/libheif-1.20.2-mingw/build/dist/libheif ./build/windows; \
+		echo "Moved 'libheif' to './build/windows'"; \
+	fi
+
+# --- end libheif ----------------------------------------------------------------------------------
+
+# --- linux builder --------------------------------------------------------------------------------
+LINUX_LIBDE_DIR := ./build/linux/libde265
+LINUX_LIBDE_INCLUDES := -I$(LINUX_LIBDE_DIR)/include
+LINUX_LIBDE_LIBS := -L$(LINUX_LIBDE_DIR)/lib -Wl, -rpath $(LINUX_LIBDE_DIR)/lib
+
+LINUX_LIBHEIF_DIR := ./build/linux/libheif
+LINUX_LIBHEIF_INCLUDES := -I$(LINUX_LIBHEIF_DIR)/include
+LINUX_LIBHEIF_LIBS := -L$(LINUX_LIBHEIF_DIR)/lib  -Wl, -rpath $(LINUX_LIBHEIF_DIR)/lib
+
+# TODO: libjpeg
+
+LINUX_LIBS=$(LINUX_LIBDE_LIBS) $(LINUX_LIBHEIF_LIBS) -lde265 -lheif
+LINUX_INCLUDES=$(LINUX_LIBDE_INCLUDES) $(LINUX_LIBHEIF_INCLUDES)
+LINUX_CFLAGS := -Wall -Wextra
+
+linux-build: linux_source_build_libheif ./src/main.c
+	$(CXX) $(LINUX_CFLAGS) -o ./build/linux/main src/main.c $(LINUX_INCLUDES) $(LINUX_LIBS)
+	@echo "DONE"
+
+# --- end linux builder ----------------------------------------------------------------------------
+
+# --- windows builder ------------------------------------------------------------------------------
+
+MINGW_LIBDE_DIR := ./build/windows/libde265
+MINGW_LIBDE_INCLUDES := -I$(MINGW_LIBDE_DIR)/include
+MINGW_LIBDE_LIBS := -L$(MINGW_LIBDE_DIR)/lib
+
+MINGW_LIBHEIF_DIR := ./build/windows/libheif
+MINGW_LIBHEIF_INCLUDES := -I$(MINGW_LIBHEIF_DIR)/include
+MINGW_LIBHEIF_LIBS := -L$(MINGW_LIBHEIF_DIR)/lib
+
+# TODO: libjpeg
+
+MINGW_LIBS=$(MINGW_LIBDE_LIBS) $(MINGW_LIBHEIF_LIBS) -lde265 -lheif -lm
+MINGW_INCLUDES=$(MINGW_LIBDE_INCLUDES) $(MINGW_LIBHEIF_INCLUDES)
+MINGW_CFLAGS := -Wall -Wextra
+
+windows-build: mingw_source_build_libheif
+	$(MINGW_CXX) $(MINGW_CFLAGS) -o ./build/windows/main src/main.c $(MINGW_INCLUDES) $(MINGW_LIBS)
+	@echo "DONE"
+
+# --- end windows builder --------------------------------------------------------------------------
 
 clean:
 	@rm -rf ./build
@@ -90,4 +192,8 @@ clean:
 	@echo "Removed './thirdparty/libde265-1.0.16-linux' directory"
 	@rm -rf ./thirdparty/libde265-1.0.16-mingw
 	@echo "Removed './thirdparty/libde265-1.0.16-mingw' directory"
+	@rm -rf ./thirdparty/libheif-1.20.2-linux
+	@echo "Removed './thirdparty/libheif-1.20.2-linux' directory"
+	@rm -rf ./thirdparty/libheif-1.20.2-mingw
+	@echo "Removed './thirdparty/libheif-1.20.2-mingw' directory"
 

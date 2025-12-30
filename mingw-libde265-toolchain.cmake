@@ -1,5 +1,5 @@
 # mingw-libde265-toolchain.cmake
-# Toolchain for cross-compiling libde265 (dynamic) for Windows using MinGW-w64
+# Toolchain for cross-compiling libde265 (dll) for Windows using MinGW-w64
 
 # Target system
 set(CMAKE_SYSTEM_NAME Windows)

@@ -11,3 +11,4 @@ This project aims to implement a locally running program that monitors a specifi
 ## References
 - `MinGW` - https://www.mingw-w64.org
 - `libde265` - https://github.com/strukturag/libde265
+- `libheif` - https://github.com/strukturag/libheif 
