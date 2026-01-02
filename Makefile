@@ -251,8 +251,14 @@ MINGW_LIBS=$(MINGW_LIBDE_LIBS) $(MINGW_LIBHEIF_LIBS) -lde265 -lheif -lm
 MINGW_INCLUDES=$(MINGW_LIBDE_INCLUDES) $(MINGW_LIBHEIF_INCLUDES)
 MINGW_CFLAGS := -Wall -Wextra
 
-windows-build: mingw_source_build_libheif
-	$(MINGW_CXX) $(MINGW_CFLAGS) -o ./build/windows/main src/main.c $(MINGW_INCLUDES) $(MINGW_LIBS)
+windows-build: mingw_source_build_libheif src/main.cpp
+	@mkdir -p "./dist"
+	@mkdir -p "./dist/windows"
+	$(MINGW_CXX) $(MINGW_CFLAGS) -o ./dist/windows/pixip src/main.cpp $(MINGW_INCLUDES) $(MINGW_LIBS)
+	@cp ./build/windows/libde265/bin/libde265.dll ./dist/windows
+	@cp ./build/windows/libheif/bin/libheif.dll ./dist/windows
+	@cp ./thirdparty/mingw/bin/libgcc_s_seh-1.dll ./dist/windows
+	@cp ./thirdparty/mingw/bin/libstdc++-6.dll ./dist/windows
 	@echo "DONE"
 
 # --- end windows builder --------------------------------------------------------------------------
