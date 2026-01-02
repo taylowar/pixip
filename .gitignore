@@ -1,5 +1,9 @@
+.cache/
 build/
+dist/
 thirdparty/libde265-1.0.16-linux
 thirdparty/libde265-1.0.16-mingw
 thirdparty/libheif-1.20.2-linux
 thirdparty/libheif-1.20.2-mingw
+thirdparty/libjpeg-turbo-3.1.2-linux
+thirdparty/libjpeg-turbo-3.1.2-mingw
