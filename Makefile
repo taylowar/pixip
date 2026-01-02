@@ -142,6 +142,72 @@ mingw_source_build_libheif: ./thirdparty/libheif-1.20.2-mingw/build/dist/libheif
 
 # --- end libheif ----------------------------------------------------------------------------------
 
+# --- libjpeg --------------------------------------------------------------------------------------
+
+# Expand the library tarball (linux)
+./thirdparty/libjpeg-turbo-3.1.2-linux: ./thirdparty/libjpeg-turbo-3.1.2.tar.gz
+	@cd ./thirdparty; \
+	tar -xvf libjpeg-turbo-3.1.2.tar.gz; \
+	mv libjpeg-turbo-3.1.2 libjpeg-turbo-3.1.2-linux; \
+	echo "'./thirdparty/libjpeg-turbo-3.1.2-linux' extracted"; \
+
+# Build libjpeg (linux)
+./thirdparty/libjpeg-turbo-3.1.2-linux/build/dist/libjpeg: ./thirdparty/libjpeg-turbo-3.1.2-linux
+	# libde265 build directory
+	@mkdir -p ./thirdparty/libjpeg-turbo-3.1.2-linux/build
+	# CMake (linux)
+	@cd ./thirdparty/libjpeg-turbo-3.1.2-linux/build; \
+	cmake \
+	cmake \
+		-DCMAKE_BUILD_TYPE=release \
+		-DCMAKE_INSTALL_PREFIX=./install \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		..; \
+	cmake --build . -- -j 8; \
+	cmake --install . --prefix ./dist/libjpeg
+
+linux_source_build_libjpeg: ./thirdparty/libjpeg-turbo-3.1.2-linux/build/dist/libjpeg
+	@mkdir -p "./build"
+	@mkdir -p "./build/linux"
+	@if [ ! -d "./build/linux/libjpeg" ]; then \
+		mv ./thirdparty/libjpeg-turbo-3.1.2-linux/build/dist/libjpeg ./build/linux; \
+		echo "Moved 'libjpeg' to './build/linux'"; \
+	fi
+	
+# Expand the library tarball (windows/MinGW)
+./thirdparty/libjpeg-turbo-3.1.2-mingw: ./thirdparty/libjpeg-turbo-3.1.2.tar.gz
+	@cd ./thirdparty; \
+	tar -xvf libjpeg-turbo-3.1.2.tar.gz; \
+	mv libjpeg-turbo-3.1.2 libjpeg-turbo-3.1.2-mingw; \
+	echo "'./thirdparty/libjpeg-turbo-3.1.2-mingw' extracted"; \
+
+# Build libjpeg (windows/MinGW)
+./thirdparty/libjpeg-turbo-3.1.2-mingw/build/dist/libjpeg: mingw_source_build_libde265 ./thirdparty/libjpeg-turbo-3.1.2-mingw
+	# libjpeg build directory
+	@mkdir -p ./thirdparty/libjpeg-turbo-3.1.2-mingw/build
+	# copy mingw cmake toolchain
+	@cp ./mingw-libjpeg-toolchain.cmake ./thirdparty/libjpeg-turbo-3.1.2-mingw/
+	# CMake (mingw)
+	@cd ./thirdparty/libjpeg-turbo-3.1.2-mingw/build; \
+	cmake \
+		-DCMAKE_TOOLCHAIN_FILE=mingw-libjpeg-toolchain.cmake \
+		-DCMAKE_BUILD_TYPE=release \
+		-DCMAKE_INSTALL_PREFIX=./install \
+		-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+		..; \
+	cmake --build . -- -j 8; \
+	cmake --install . --prefix ./dist/libjpeg
+
+mingw_source_build_libjpeg: ./thirdparty/libjpeg-turbo-3.1.2-mingw/build/dist/libjpeg
+	@mkdir -p "./build"
+	@mkdir -p "./build/windows"
+	@if [ ! -d "./build/windows/libjpeg" ]; then \
+		mv ./thirdparty/libjpeg-turbo-3.1.2-mingw/build/dist/libjpeg ./build/windows; \
+		echo "Moved 'libjpeg' to './build/windows'"; \
+	fi
+
+# --- end libjpeg ----------------------------------------------------------------------------------
+
 # --- linux builder --------------------------------------------------------------------------------
 LINUX_LIBDE_DIR := ./build/linux/libde265
 LINUX_LIBDE_INCLUDES := -I$(LINUX_LIBDE_DIR)/include
@@ -151,14 +217,20 @@ LINUX_LIBHEIF_DIR := ./build/linux/libheif
 LINUX_LIBHEIF_INCLUDES := -I$(LINUX_LIBHEIF_DIR)/include
 LINUX_LIBHEIF_LIBS := -L$(LINUX_LIBHEIF_DIR)/lib  -Wl, -rpath $(LINUX_LIBHEIF_DIR)/lib
 
-# TODO: libjpeg
+LINUX_LIBJPEG_DIR := ./build/linux/libjpeg
+LINUX_LIBJPEG_INCLUDES := -I$(LINUX_LIBJPEG_DIR)/include
+LINUX_LIBJPEG_LIBS := -L$(LINUX_LIBJPEG_DIR)/lib  -Wl, -rpath $(LINUX_LIBJPEG_DIR)/lib
 
-LINUX_LIBS=$(LINUX_LIBDE_LIBS) $(LINUX_LIBHEIF_LIBS) -lde265 -lheif
+LINUX_LIBS=$(LINUX_LIBDE_LIBS) $(LINUX_LIBHEIF_LIBS) $(LINUX_LIBJPEG_LIBS) -lde265 -lheif -ljpeg
 LINUX_INCLUDES=$(LINUX_LIBDE_INCLUDES) $(LINUX_LIBHEIF_INCLUDES)
 LINUX_CFLAGS := -Wall -Wextra
 
-linux-build: linux_source_build_libheif ./src/main.c
-	$(CXX) $(LINUX_CFLAGS) -o ./build/linux/main src/main.c $(LINUX_INCLUDES) $(LINUX_LIBS)
+linux-build: linux_source_build_libheif linux_source_build_libjpeg linux_source_build_libjpeg ./src/main.cpp
+	@mkdir -p "./dist"
+	@mkdir -p "./dist/linux"
+	$(CXX) $(LINUX_CFLAGS) -o ./dist/linux/pixip src/main.cpp $(LINUX_INCLUDES) $(LINUX_LIBS)
+	@cp ./build/linux/libde265/lib/libde265.so ./dist/linux
+	@cp ./build/linux/libheif/lib/libheif.so ./dist/linux
 	@echo "DONE"
 
 # --- end linux builder ----------------------------------------------------------------------------
@@ -196,4 +268,8 @@ clean:
 	@echo "Removed './thirdparty/libheif-1.20.2-linux' directory"
 	@rm -rf ./thirdparty/libheif-1.20.2-mingw
 	@echo "Removed './thirdparty/libheif-1.20.2-mingw' directory"
+	@rm -rf ./thirdparty/libjpeg-turbo-3.1.2-linux
+	@echo "Removed './thirdparty/libjpeg-turbo-3.1.2-linux' directory"
+	@rm -rf ./thirdparty/libjpeg-turbo-3.1.2-mingw
+	@echo "Removed './thirdparty/libjpeg-turbo-3.1.2-mingw' directory"
 
