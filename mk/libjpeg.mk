@@ -1,5 +1,4 @@
 # libjpeg.mk - builds libjpeg for Linux and MinGW
-# Depends on libde265
 
 # -----------------------------
 # Variables
@@ -38,15 +37,16 @@ $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw: $(LIBJPEG_TAR)
 # -----------------------------
 # Linux build
 # -----------------------------
-linux_source_build_libjpeg: $(TP)/libjpeg-$(LIBJPEG_VERSION)-linux linux_source_build_libde265
+linux_source_build_libjpeg: $(TP)/libjpeg-$(LIBJPEG_VERSION)-linux
 	@echo "Building libjpeg for Linux..."
 	@mkdir -p $(TP)/libjpeg-$(LIBJPEG_VERSION)-linux/build
 	@cd $(TP)/libjpeg-$(LIBJPEG_VERSION)-linux/build && \
 	cmake \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DENABLE_EXAMPLES=OFF \
+		-DENABLE_UTILS=OFF \
+		-DWITH_EXAMPLES=OFF \
 		-DCMAKE_INSTALL_PREFIX=$(TP)/libjpeg-$(LIBJPEG_VERSION)-linux/build/dist \
-		-DLIBDE265_INCLUDE_DIR=$(BUILD)/linux/libde265/include \
-		-DLIBDE265_LIBRARY=$(BUILD)/linux/libde265/lib/libde265.so \
 		.. && \
 	cmake --build . -- -j$(shell nproc) && \
 	cmake --install . --prefix $(TP)/libjpeg-$(LIBJPEG_VERSION)-linux/build/dist
@@ -59,7 +59,7 @@ linux_source_build_libjpeg: $(TP)/libjpeg-$(LIBJPEG_VERSION)-linux linux_source_
 # -----------------------------
 # MinGW build
 # -----------------------------
-mingw_source_build_libjpeg: $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw mingw_source_build_libde265
+mingw_source_build_libjpeg: $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw
 	@echo "Building libjpeg for Windows (MinGW)..."
 	# copy MinGW toolchain file
 	@cp $(CURDIR)/mingw-libjpeg-toolchain.cmake $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw/
@@ -68,9 +68,14 @@ mingw_source_build_libjpeg: $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw mingw_source_
 	cmake \
 		-DCMAKE_TOOLCHAIN_FILE=$(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw/mingw-libjpeg-toolchain.cmake \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DENABLE_EXAMPLES=OFF \
+		-DENABLE_UTILS=OFF \
+		-DWITH_EXAMPLES=OFF \
 		-DCMAKE_INSTALL_PREFIX=$(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw/build/dist \
-		-DLIBDE265_INCLUDE_DIR=$(BUILD)/windows/libde265/include \
-		-DLIBDE265_LIBRARY=$(BUILD)/windows/libde265/lib/libde265.dll.a \
+		-DCMAKE_SYSTEM_PROCESSOR=x86_64 \
+		-DWITH_SIMD=OFF \
+		-DCPU_TYPE=x86_64 \
+		-DCPU_BITS=64 \
 		.. && \
 	cmake --build . -- -j$(shell nproc) && \
 	cmake --install . --prefix $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw/build/dist
@@ -79,12 +84,3 @@ mingw_source_build_libjpeg: $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw mingw_source_
 		mv $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw/build/dist $(WIN_PREFIX); \
 		echo "Moved libjpeg to $(WIN_PREFIX)"; \
 	fi
-
-# -----------------------------
-# Clean
-# -----------------------------
-clean-libjpeg:
-	@rm -rf $(TP)/libjpeg-$(LIBJPEG_VERSION)-linux
-	@rm -rf $(TP)/libjpeg-$(LIBJPEG_VERSION)-mingw
-	@rm -rf $(LINUX_PREFIX)
-	@rm -rf $(WIN_PREFIX)
