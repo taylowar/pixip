@@ -13,11 +13,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <unistd.h>
 #include <errno.h>
 
+// ------------ COMPATIBILITY LAYER ------------ 
+#ifdef __linux__
 #include <poll.h>
-#include <unistd.h>
 #include <sys/inotify.h>
+#else
+#include <windows.h>
+#endif // __linux__
+// ------------ COMPATIBILITY LAYER ------------ 
+
 
 typedef enum {
     dmon_notify_CREATE=0,
@@ -41,20 +48,29 @@ typedef enum {
 
 typedef struct {
     Dmon_Notify_Mode mode;
-    const char* name;
+    char* name;
     size_t name_len;
     Dmon_FSO_Type fso_type;
 } Dmon_Notify_Result;
 
+#ifdef __linux__ 
 typedef struct {
     int fd; // inotify file descriptor
-    nfds_t fd_polls_len;
-    struct pollfd fd_polls[1]; // inotify poll event array (we expect only one event (for now))
+    int fd_polls_len;
+    struct pollfd fd_polls[1];
 } Dmon;
+#endif // __linux__
+#ifdef WIN32
+typedef struct {
+    int fd_polls_len;
+    HANDLE fd_polls[1];
+    OVERLAPPED overlapped;
+} Dmon;
+#endif // WIN32
 
 void dmon_init(Dmon *dmon);
 void dmon_register_directory(Dmon *dmon, const char* full_dir_path, Dmon_Notify_Mode mode);
-void dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result);
+bool dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result);
 
 void dmon_print_notify_result(Dmon_Notify_Result result);
 

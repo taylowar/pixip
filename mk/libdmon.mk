@@ -4,16 +4,16 @@
 # Variables
 # -----------------------------
 LIBDMON_LINUX_SRC := $(CURDIR)/src/dmon_posix.cpp
-LIBDMON_WIN_SRC := $(CURDIR)/src/dmon_windows.cpp
+LIBDMON_WIN32_SRC := $(CURDIR)/src/dmon_win32.cpp
 BUILD := $(CURDIR)/build
 
 LIBDMON_LINUX_PREFIX := $(BUILD)/linux/libdmon
-LIBDMON_WIN_PREFIX   := $(BUILD)/windows/libdmon
+LIBDMON_WIN32_PREFIX   := $(BUILD)/windows/libdmon
 
 # -----------------------------
 # Phony targets
 # -----------------------------
-.PHONY: linux_source_build_libdmon mingw_source_build_libdmon clean-libdmon
+.PHONY: linux_source_build_libdmon mingw_source_build_libdmon
 
 # -----------------------------
 # Linux build
@@ -29,12 +29,12 @@ linux_source_build_libdmon: $(LIBDMON_LINUX_SRC)
 # -----------------------------
 # MinGW build
 # -----------------------------
-mingw_source_build_libdmon: $(LIBDMON_WIN_SRC)
-	error "not implemented yet"
-
-# -----------------------------
-# Clean
-# -----------------------------
-clean-libdmon:
-	@rm -rf $(LIBDMON_LINUX_PREFIX)
-	@rm -rf $(LIBDMON_WIN_PREFIX)
+mingw_source_build_libdmon: $(LIBDMON_WIN32_SRC)
+	@echo "Building libdmon for MinGW..."
+	@mkdir -p $(BUILD)/windows
+	@mkdir -p $(LIBDMON_WIN32_PREFIX)/bin
+	$(MINGW_CXX) -fPIC -shared -Wall -Wextra -o $(LIBDMON_WIN32_PREFIX)/bin/libdmon.dll $(LIBDMON_WIN32_SRC)
+	@mkdir -p $(LIBDMON_WIN32_PREFIX)/lib
+	@cp $(LIBDMON_WIN32_PREFIX)/bin/libdmon.dll $(LIBDMON_WIN32_PREFIX)/lib
+	@mkdir -p $(LIBDMON_WIN32_PREFIX)/include
+	@cp $(CURDIR)/src/dmon.h $(LIBDMON_WIN32_PREFIX)/include

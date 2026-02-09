@@ -60,10 +60,10 @@ void dmon_register_directory(Dmon *dmon, const char* full_dir_path, Dmon_Notify_
     printf("[dmon] INFO: `%s` directory registered\n", full_dir_path); 
 }
 
-void dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result)
+bool dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result)
 {
     // TODO: debug print
-    // printf("[dmon] INFO: polling\n");
+    //printf("[dmon] INFO: polling (%d)\n", dmon->fd_polls_len);
     int poll_num = poll(dmon->fd_polls, dmon->fd_polls_len, 500);
     if (poll_num < 0) {
         if (errno == EINTR) {
@@ -92,7 +92,6 @@ void dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result)
 
             for (;;) {
                 // TODO: debug mode enable
-                // printf("[dmon] reading events\n");
 
                 /* Read some events. */
 
@@ -135,7 +134,7 @@ void dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result)
                     // TODO: debug mode print
                     // printf("[dmon] %s/", "../probe");
                     /* capture the name of the file */
-                    result->name = event->name;
+                    result->name = (char*)event->name;
                     result->name_len = event->len;
                     /* capture type of filesystem object */
                     if (event->mask & IN_ISDIR) {
@@ -147,6 +146,7 @@ void dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result)
             }
         }
     }
+    return true;
 }
 
 void dmon_print_notify_result(Dmon_Notify_Result result)
