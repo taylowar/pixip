@@ -203,44 +203,45 @@ int main(void)
     time_t end;
     while (1) {
         Dmon_Notify_Result result = {};
-        dmon_poll_result(&dmon, &result);
-        if (job_mark) {
-            end = time(0);
-            time_t dts = end-start;
-            if (dts >= 1) {
-                FilesDA files = {};
-                fda_dir_collect(dir_path, &files);
-                for (size_t i=0;i<files.size;++i) {
-                    File dfile = files.es[i];
-                    if (cstr_ends_with(dfile.file_name, ".heic") || cstr_ends_with(dfile.file_name, ".heif")) {
-                        AbstractImage aimg;
-                        heif_to_abstract(dfile, &aimg);
-                        abstract_to_jpeg(aimg, 10);
-                        heif_image_release(aimg.ref);
-                        fda_move_to_trash(trash_bin, dfile);
-                    } else {
-                        printf("[pixip] INFO: skipping processing of `%s`\n", dfile.file_name);
+        if (dmon_poll_result(&dmon, &result)) {
+            if (job_mark) {
+                end = time(0);
+                time_t dts = end-start;
+                if (dts >= 1) {
+                    FilesDA files = {};
+                    fda_dir_collect(dir_path, &files);
+                    for (size_t i=0;i<files.size;++i) {
+                        File dfile = files.es[i];
+                        if (cstr_ends_with(dfile.file_name, ".heic") || cstr_ends_with(dfile.file_name, ".heif")) {
+                            AbstractImage aimg;
+                            heif_to_abstract(dfile, &aimg);
+                            abstract_to_jpeg(aimg, 10);
+                            heif_image_release(aimg.ref);
+                            fda_move_to_trash(trash_bin, dfile);
+                        } else {
+                            printf("[pixip] INFO: skipping processing of `%s`\n", dfile.file_name);
+                        }
                     }
+                    printf("DONE!\n");
+                    job_mark = false;
                 }
-                printf("DONE!\n");
-                job_mark = false;
             }
-        }
-        // event trigger when a heic image is added
-        if (result.fso_type == dmon_fso_FILE) {
-            talloc_reset();
-            if (cstr_ends_with(result.name, ".heic") || cstr_ends_with(result.name, ".heif")) {
-                start = time(0);
-                job_mark = true;
-            } 
-            else if (cstr_ends_with(result.name, ".jpeg")) {
-                // TODO: introduce custom log
-                printf("[pixip] INFO: ignoring `%s`\n", result.name);
-            }
-            else {
-                // TODO: introduce custom log
-                fprintf(stderr, "[pixip] ERROR: `%s` is not supported yet\n", result.name);
-                printf("[pixip] INFO: Current support is only for `heic` to `jpeg`\n");
+            // event trigger when a heic image is added
+            if (result.fso_type == dmon_fso_FILE) {
+                talloc_reset();
+                if (cstr_ends_with(result.name, ".heic") || cstr_ends_with(result.name, ".heif")) {
+                    start = time(0);
+                    job_mark = true;
+                } 
+                else if (cstr_ends_with(result.name, ".jpeg")) {
+                    // TODO: introduce custom log
+                    printf("[pixip] INFO: ignoring `%s`\n", result.name);
+                }
+                else {
+                    // TODO: introduce custom log
+                    fprintf(stderr, "[pixip] ERROR: `%s` is not supported yet\n", result.name);
+                    printf("[pixip] INFO: Current support is only for `heic` to `jpeg`\n");
+                }
             }
         }
     }

@@ -17,13 +17,14 @@ LINUX_LIBHEIF_PREFIX := $(BUILD)/linux/libheif
 LINUX_LIBJPEG_PREFIX := $(BUILD)/linux/libjpeg
 LINUX_LIBDMON_PREFIX := $(BUILD)/linux/libdmon
 
-WIN_LIBDE_PREFIX := $(BUILD)/windows/libde265
-WIN_LIBHEIF_PREFIX := $(BUILD)/windows/libheif
-WIN_LIBJPEG_PREFIX := $(BUILD)/windows/libjpeg
-WIN_LIBDMON_PREFIX := $(BUILD)/windows/libdmon
+WIN32_LIBDE_PREFIX := $(BUILD)/windows/libde265
+WIN32_LIBHEIF_PREFIX := $(BUILD)/windows/libheif
+WIN32_LIBJPEG_PREFIX := $(BUILD)/windows/libjpeg
+WIN32_LIBDMON_PREFIX := $(BUILD)/windows/libdmon
 
 # Source file
-SRC := src/main.cpp
+SRC_LINUX := src/main.cpp
+SRC_WIN32 := src/main_win32.cpp
 
 # Number of parallel build jobs
 JOBS := $(shell nproc)
@@ -49,7 +50,7 @@ linux: linux_source_build_libde265 linux_source_build_libheif linux_source_build
 	@echo "Building pixip Linux executable..."
 	@mkdir -p $(CURDIR)/dist/linux
 	@mkdir -p $(CURDIR)/dist/linux/lib
-	$(CXX) -Wall -Wextra $(SRC) \
+	$(CXX) -Wall -Wextra $(SRC_LINUX) \
 		-I$(LINUX_LIBDE_PREFIX)/include \
 		-I$(LINUX_LIBHEIF_PREFIX)/include \
 		-I$(LINUX_LIBJPEG_PREFIX)/include \
@@ -73,19 +74,22 @@ linux: linux_source_build_libde265 linux_source_build_libheif linux_source_build
 windows: mingw_source_build_libde265 mingw_source_build_libheif mingw_source_build_libjpeg mingw_source_build_libdmon
 	@echo "Building pixip Windows executable..."
 	@mkdir -p $(CURDIR)/dist/windows
-	$(MINGW_CXX) -Wall -Wextra $(SRC) \
-		-I$(WIN_LIBDE_PREFIX)/include \
-		-I$(WIN_LIBHEIF_PREFIX)/include \
-		-I$(WIN_LIBJPEG_PREFIX)/include \
-		-L$(WIN_LIBDE_PREFIX)/lib -L$(WIN_LIBHEIF_PREFIX)/lib -L$(WIN_LIBJPEG_PREFIX)/lib \
-		-lde265 -lheif -ljpeg -lm \
+	$(MINGW_CXX) -Wall -Wextra $(SRC_WIN32) \
+		-I$(WIN32_LIBDE_PREFIX)/include \
+		-I$(WIN32_LIBHEIF_PREFIX)/include \
+		-I$(WIN32_LIBJPEG_PREFIX)/include \
+		-L$(WIN32_LIBDE_PREFIX)/lib \
+		-L$(WIN32_LIBHEIF_PREFIX)/lib \
+		-L$(WIN32_LIBJPEG_PREFIX)/lib \
+		-L$(WIN32_LIBDMON_PREFIX)/lib \
+		-lde265 -lheif -ljpeg -lm -ldmon \
 		-o $(CURDIR)/dist/windows/pixip.exe
-	@cp $(WIN_LIBDE_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
-	@cp $(WIN_LIBHEIF_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
-	@cp $(WIN_LIBJPEG_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
+	@cp $(WIN32_LIBDE_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
+	@cp $(WIN32_LIBHEIF_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
+	@cp $(WIN32_LIBJPEG_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
+	@cp $(WIN32_LIBDMON_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
 	@echo "DONE: Windows build complete"
 
-# -----------------------------
 # -----------------------------
 # Include third-party builds
 # -----------------------------
@@ -102,10 +106,15 @@ include mk/libjpeg.mk
 # libdmon 
 include mk/libdmon.mk
 
+probe:
+	$(MINGW_CXX) -fPIC -shared -Wall -Wextra -o ./bin/windows/libdmon.dll ./src/dmon_win32.cpp
+	$(MINGW_CXX) -Wall -Wextra -o ./bin/windows/main_w32.exe ./src/main_win32.cpp -L ./bin/windows -ldmon
+
+
 # -----------------------------
 # Clean
 # -----------------------------
-clean: clean-libde265 clean-libheif clean-libjpeg clean-libdmon
+clean: 
 	@rm -rf $(BUILD) $(CURDIR)/dist
 	@echo "Cleaned all build artifacts"
 

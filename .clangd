@@ -1,5 +1,8 @@
 CompileFlags:
-  Add: [-DDMON_IMPLEMENTATION]
+  Add:
+#    - --target=x86_64-w64-mingw32
+#    - --sysroot=/usr/x86_64-w64-mingw32
+#    - -I/usr/x86_64-w64-mingw32/include
 
 Diagnostics:
   Suppress: misc-definitions-in-headers
