@@ -44,6 +44,9 @@ linux_source_build_libheif: $(TP)/libheif-$(LIBHEIF_VERSION)-linux linux_source_
 	@cd $(TP)/libheif-$(LIBHEIF_VERSION)-linux/build && \
 	cmake \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DENABLE_EXAMPLES=OFF \
+		-DENABLE_UTILS=OFF \
+		-DWITH_EXAMPLES=OFF \
 		-DCMAKE_INSTALL_PREFIX=$(TP)/libheif-$(LIBHEIF_VERSION)-linux/build/dist \
 		-DLIBDE265_INCLUDE_DIR=$(BUILD)/linux/libde265/include \
 		-DLIBDE265_LIBRARY=$(BUILD)/linux/libde265/lib/libde265.so \
@@ -68,6 +71,9 @@ mingw_source_build_libheif: $(TP)/libheif-$(LIBHEIF_VERSION)-mingw mingw_source_
 	cmake \
 		-DCMAKE_TOOLCHAIN_FILE=$(TP)/libheif-$(LIBHEIF_VERSION)-mingw/mingw-libheif-toolchain.cmake \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DENABLE_EXAMPLES=OFF \
+		-DENABLE_UTILS=OFF \
+		-DWITH_EXAMPLES=OFF \
 		-DCMAKE_INSTALL_PREFIX=$(TP)/libheif-$(LIBHEIF_VERSION)-mingw/build/dist \
 		-DLIBDE265_INCLUDE_DIR=$(BUILD)/windows/libde265/include \
 		-DLIBDE265_LIBRARY=$(BUILD)/windows/libde265/lib/libde265.dll.a \
@@ -79,12 +85,3 @@ mingw_source_build_libheif: $(TP)/libheif-$(LIBHEIF_VERSION)-mingw mingw_source_
 		mv $(TP)/libheif-$(LIBHEIF_VERSION)-mingw/build/dist $(LIBHEIF_WIN_PREFIX); \
 		echo "Moved libheif to $(LIBHEIF_WIN_PREFIX)"; \
 	fi
-
-# -----------------------------
-# Clean
-# -----------------------------
-clean-libheif:
-	@rm -rf $(TP)/libheif-$(LIBHEIF_VERSION)-linux
-	@rm -rf $(TP)/libheif-$(LIBHEIF_VERSION)-mingw
-	@rm -rf $(LIBHEIF_LINUX_PREFIX)
-	@rm -rf $(LIBHEIF_WIN_PREFIX)
