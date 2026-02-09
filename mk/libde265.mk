@@ -38,6 +38,9 @@ linux_source_build_libde265: $(TP)/libde265-$(LIBDE265_VERSION)-linux
 	@mkdir -p $(TP)/libde265-$(LIBDE265_VERSION)-linux/build
 	@cd $(TP)/libde265-$(LIBDE265_VERSION)-linux/build && \
 	cmake -DCMAKE_BUILD_TYPE=Release \
+		  -DENABLE_EXAMPLES=OFF \
+		  -DENABLE_UTILS=OFF \
+		  -DWITH_EXAMPLES=OFF \
 	      -DCMAKE_INSTALL_PREFIX=$(TP)/libde265-$(LIBDE265_VERSION)-linux/build/dist .. && \
 	cmake --build . -- -j$(shell nproc) && \
 	cmake --install . --prefix $(TP)/libde265-$(LIBDE265_VERSION)-linux/build/dist
@@ -57,6 +60,9 @@ mingw_source_build_libde265: $(TP)/libde265-$(LIBDE265_VERSION)-mingw
 	@cd $(TP)/libde265-$(LIBDE265_VERSION)-mingw/build && \
 	cmake -DCMAKE_TOOLCHAIN_FILE=$(TP)/libde265-$(LIBDE265_VERSION)-mingw/mingw-libde265-toolchain.cmake \
 	      -DCMAKE_BUILD_TYPE=Release \
+		  -DENABLE_EXAMPLES=OFF \
+		  -DENABLE_UTILS=OFF \
+		  -DWITH_EXAMPLES=OFF \
 	      -DCMAKE_INSTALL_PREFIX=$(TP)/libde265-$(LIBDE265_VERSION)-mingw/build/dist .. && \
 	cmake --build . -- -j$(shell nproc) && \
 	cmake --install . --prefix $(TP)/libde265-$(LIBDE265_VERSION)-mingw/build/dist
@@ -66,13 +72,3 @@ mingw_source_build_libde265: $(TP)/libde265-$(LIBDE265_VERSION)-mingw
 		mv $(TP)/libde265-$(LIBDE265_VERSION)-mingw/build/dist $(LIBDE265_WIN_PREFIX); \
 		echo "Moved libde265 to $(LIBDE265_WIN_PREFIX)"; \
 	fi
-
-# -----------------------------
-# Clean
-# -----------------------------
-.PHONY: clean-libde265
-clean-libde265:
-	@rm -rf $(TP)/libde265-$(LIBDE265_VERSION)-linux
-	@rm -rf $(TP)/libde265-$(LIBDE265_VERSION)-mingw
-	@rm -rf $(LIBDE265_LINUX_PREFIX)
-	@rm -rf $(LIBDE265_WIN_PREFIX)
