@@ -21,6 +21,7 @@ WIN32_LIBDE_PREFIX := $(BUILD)/windows/libde265
 WIN32_LIBHEIF_PREFIX := $(BUILD)/windows/libheif
 WIN32_LIBJPEG_PREFIX := $(BUILD)/windows/libjpeg
 WIN32_LIBDMON_PREFIX := $(BUILD)/windows/libdmon
+WIN32_MINGW_PREFIX := $(TP)/mingw
 
 # Source file
 SRC_LINUX := src/main.cpp
@@ -50,7 +51,7 @@ linux: linux_source_build_libde265 linux_source_build_libheif linux_source_build
 	@echo "Building pixip Linux executable..."
 	@mkdir -p $(CURDIR)/dist/linux
 	@mkdir -p $(CURDIR)/dist/linux/lib
-	$(CXX) -Wall -Wextra $(SRC_LINUX) \
+	$(CXX) -std=c++20 -Wall -Wextra $(SRC_LINUX) \
 		-I$(LINUX_LIBDE_PREFIX)/include \
 		-I$(LINUX_LIBHEIF_PREFIX)/include \
 		-I$(LINUX_LIBJPEG_PREFIX)/include \
@@ -88,6 +89,8 @@ windows: mingw_source_build_libde265 mingw_source_build_libheif mingw_source_bui
 	@cp $(WIN32_LIBHEIF_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
 	@cp $(WIN32_LIBJPEG_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
 	@cp $(WIN32_LIBDMON_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
+	@cp $(WIN32_MINGW_PREFIX)/bin/*.dll $(CURDIR)/dist/windows
+	@cp $(CURDIR)/pixip.conf $(CURDIR)/dist/windows
 	@echo "DONE: Windows build complete"
 
 # -----------------------------
