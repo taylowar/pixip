@@ -39,7 +39,7 @@ bool sv_equals(StringView sv, StringView other)
 #include "../build/linux/libjpeg/include/jpeglib.h"
 #endif
 
-#include "dmon.h"
+#include "./dmon/dmon.h"
 
 void decode_heif_image(const char* file_path, heif_image **himage)
 {
