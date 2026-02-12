@@ -23,11 +23,12 @@ void dmon_register_directory(Dmon *dmon, const char* full_dir_path, Dmon_Notify_
     );
     if (file == INVALID_HANDLE_VALUE) {
         // TODO: (Tilen) extend the descritpion of this error
-        fprintf(stderr, "[dmon] ERROR: invalid handle value\n");
+        fprintf(stderr, "[dmon] ERROR: invalid handle value: %s\n", full_dir_path);
         exit(1);
     }
     assert(dmon->fd_polls_len == 0 && "We support only one handle (for now)");
     dmon->fd_polls[dmon->fd_polls_len++] = file;
+    printf("[dmon] INFO: `%s` directory registered\n", full_dir_path); 
 }
 
 bool dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result)
@@ -56,9 +57,10 @@ bool dmon_poll_result(Dmon *dmon, Dmon_Notify_Result *result)
             for (DWORD i = 0; i < name_len; i++) {
                 filename[i] = event->FileName[i];
             }
-            filename[name_len] = L'\0';;
+            filename[name_len] = L'\0';
             result->name = (char*)malloc(name_len); // TODO: (Tilen) replace with a temporary alloaction
             wcstombs(result->name, filename, name_len); // because windows is special has decided to support the UTF-16, because why the fuck not
+            result->name[name_len] = L'\0';
             result->name_len = name_len;
 
             switch (event->Action) {
