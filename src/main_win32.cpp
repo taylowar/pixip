@@ -7,8 +7,8 @@
 
 int main(void)
 {
+    // Pixip Settings
     SL_Settings settings = {};
-
     sl_read_settings_from_file("./pixip.conf", &settings);
 
     const char* monitor_dir_path = settings.monitor_dir_path.c_str();

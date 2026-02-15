@@ -177,21 +177,15 @@ void abstract_to_jpeg(AbstractImage aimg, unsigned int quality)
     jpeg_destroy_compress(&cinfo);
 }
 
-#define DEFAULT_MONITOR_DIR_PATH "/home/tilc/dev/programming/c/pixip/testing" 
-#define DEFAULT_TRASH_BIN_PATH DEFAULT_MONITOR_DIR_PATH"/trash-bin"
-
 int main(void)
 {
+    // Pixip Settings
     SL_Settings settings = {};
-
     sl_read_settings_from_file("./pixip.conf", &settings);
-
-    const char* monitor_dir_path = settings.monitor_dir_path.c_str();
-    const char* trash_bin_path = settings.trash_bin_path.c_str();
 
     Dmon dmon = {};
     dmon_init(&dmon);
-    dmon_register_directory(&dmon, monitor_dir_path, dmon_notify_CREATE);
+    dmon_register_directory(&dmon, settings.monitor_dir_path, dmon_notify_CREATE);
 
     bool job_mark = false;
 
@@ -205,7 +199,7 @@ int main(void)
                 time_t dts = end-start;
                 if (dts >= 1) {
                     FilesDA files = {};
-                    fda_dir_collect(monitor_dir_path, &files);
+                    fda_dir_collect(settings.monitor_dir_path, &files);
                     for (size_t i=0;i<files.size;++i) {
                         File dfile = files.es[i];
                         if (cstr_ends_with(dfile.file_name, ".heic") || cstr_ends_with(dfile.file_name, ".heif")) {
@@ -213,7 +207,7 @@ int main(void)
                             heif_to_abstract(dfile, &aimg);
                             abstract_to_jpeg(aimg, 10);
                             heif_image_release(aimg.ref);
-                            fda_move_to_trash(trash_bin_path, dfile);
+                            fda_move_to_trash(settings.trash_bin_path, dfile);
                         } else {
                             printf("[pixip] INFO: skipping processing of `%s`\n", dfile.file_name);
                         }
