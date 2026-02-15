@@ -17,19 +17,6 @@
 #define SL_IMPLEMENTATION
 #include "settings_loader.h"
 
-bool sv_equals(StringView sv, StringView other)
-{
-    if (sv.size != other.size) {
-        return false;
-    }
-    for (size_t i=0;i<sv.size;++i) {
-        if (sv.data[i] != other.data[i]) {
-            return false;
-        }
-    }
-    return true;
-}
-
 #ifdef WIN32
 #include "../build/windows/libheif/include/libheif/heif.h"
 #endif

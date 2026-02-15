@@ -1,4 +1,4 @@
-// String Toolbox - st.h
+// String View - taken from TSoding SV.h
 
 #ifndef SV_H_
 #define SV_H_
@@ -20,6 +20,7 @@ typedef struct {
 StringView sv_from_cstr(const char* cstr, size_t size);
 
 bool cstr_ends_with(const char* cstr, const char* ends);
+bool sv_equals(StringView sv1, StringView sv2);
 
 StringView sv_chop_until_delim(StringView sv, const char* delim);
 
@@ -53,6 +54,21 @@ bool cstr_ends_with(const char* cstr, const char* ends)
         }
     }
     return true;
+}
+
+bool sv_equals(StringView sv1, StringView sv2)
+{
+    if (sv1.size != sv2.size) {
+        return false;
+    }
+    bool eq = true;
+    for (size_t i=0;i<sv1.size;++i) {
+        if (sv1.data[i] != sv2.data[i]) {
+            eq = false;
+            break;
+        }
+    }
+    return eq;
 }
 
 StringView sv_chop_until_delim(StringView sv, const char delim)
