@@ -26,6 +26,8 @@ StringView sv_chop_until_delim(StringView sv, const char* delim);
 
 StringView sv_extend(StringView sv, const char* cstr);
 
+void sv_trim_back(StringView *sv);
+
 #ifdef SV_IMPLEMENTATION
 
 StringView sv_from_cstr(const char *cstr, size_t size)
@@ -85,6 +87,15 @@ StringView sv_chop_until_delim(StringView sv, const char delim)
         .data = sv.data
     };
     return out;
+}
+
+void sv_trim_back(StringView *sv)
+{
+    size_t i = sv->size-1;
+    while (i > 0 && sv->data[i] == ' ') {
+        i -= 1;
+    }
+    sv->size = i;
 }
 
 #endif // SV_IMPLEMENTATION 
