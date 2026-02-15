@@ -1,3 +1,7 @@
+/// talloc.h - Tilen Okretic - 01.09.2024
+///
+/// This is an STB style header only library which implement sn arena allocator for maneging temporary memory
+///
 #ifndef TALLOC_H_
 #define TALLOC_H_
 

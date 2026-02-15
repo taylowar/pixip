@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <fstream>
 
-#include "sv.h"
+#include "sv.h" // This assumes `sv.h` is included in the `main` file
 
 typedef struct {
     char* monitor_dir_path;
