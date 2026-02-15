@@ -6,16 +6,21 @@
 #define SETTINGS_LOADER_H_
 
 #include <stdlib.h>
-#include <string>
+#include <stdio.h>
 #include <fstream>
 
+#include "sv.h"
+
 typedef struct {
-    std::string monitor_dir_path;
-    std::string trash_bin_path;
+    char* monitor_dir_path;
+    size_t monitor_dir_path_len;
+    char* trash_bin_path;
+    size_t trash_bin_path_len;
 } SL_Settings;
 
 void sl_read_settings_from_file(const char* settings_file_path, SL_Settings *settings);
 
+#define SL_IMPLEMENTATION
 #ifdef SL_IMPLEMENTATION
 void sl_read_settings_from_file(const char* settings_file_path, SL_Settings *settings)
 {
@@ -24,44 +29,36 @@ void sl_read_settings_from_file(const char* settings_file_path, SL_Settings *set
         const size_t buf_size = 1024;
         char buf[buf_size];
         while (file_stream.getline(buf, buf_size)) {
-            std::string line = std::string(buf); 
-            size_t new_size = line.length();
-            // TODO: (Tilen) trim_back
-            while (line.at(new_size-1) == ' ') {
-                line.pop_back();
-                new_size-=1;
-            }
+            StringView sv = SV(buf);
+            sv_trim_back(&sv);
             // validate correct format of key value pair
-            size_t s = line.find_first_of(";");
-            if (s < line.length()-1) {
-                fprintf(stderr, "ERROR: malformed settings file\n");
-                exit(1);
-            }
-            if (line.at(line.length()-1) != ';') {
-                fprintf(stderr, "ERROR: malformed settings file: missing ';'\n");
-                exit(1);
-            }
-            line.pop_back(); // remove ';'
+            StringView kv_pair = sv_chop_until_delim(sv, ';');
             // determine setting key (before '=')
-            size_t delim_loc = line.find_first_of('=');
-            std::string key = line.substr(0, delim_loc);
-            line.erase(0, delim_loc+1);
+            StringView key = sv_chop_until_delim(kv_pair, '=');
             // determine setting value (after '=')
-            std::string value = line.data();
-            if (value.length() <= 0) {
-                fprintf(stderr, "ERROR: malformed settings file: '%s' has no value\n", key.c_str());
-                exit(1);
-            }
+            const char* value = "aboba";
             // store parsed settings data
-            if (key.compare("monitor_dir_path") == 0) {
-                settings->monitor_dir_path = value;
+            if (sv_equals(key, SV("monitor_dir_path"))) {
+                #ifdef TALLOC_H_
+                settings->monitor_dir_path = (char*)talloc_reserve(5+1);
+                #else
+                printf("[SettingLoader] WARN: Using `malloc` instead of `talloc`. Did you free the string?\n");
+                settings->monitor_dir_path = (char*)malloc(5+1);
+                #endif // TALLOC_H_
+                snprintf(settings->monitor_dir_path, 5+1, "%s", value);
             }
-            else if (key.compare("trash_bin_path") == 0) {
-                settings->trash_bin_path = value;
+            else if (sv_equals(key, SV("trash_bin_path"))) {
+                #ifdef TALLOC_H_
+                settings->trash_bin_path = (char*)talloc_reserve(5+1);
+                #else
+                printf("[SettingLoader] WARN: Using `malloc` instead of `talloc`. Did you free the string?\n");
+                settings->trash_bin_path = (char*)malloc(5+1);
+                #endif // TALLOC_H_
+                snprintf(settings->trash_bin_path, 5+1, "%s", value);
             } else {
                 fprintf(
                     stderr,
-                    "[SettingLoader] ERROR: Unknown configuration key: `%s`\n", key.c_str()
+                    "[SettingLoader] ERROR: Unknown configuration key: `%s`\n", key.data
                 ); 
                 exit(1);
             }
