@@ -22,7 +22,7 @@ StringView sv_from_cstr(const char* cstr, size_t size);
 bool cstr_ends_with(const char* cstr, const char* ends);
 bool sv_equals(StringView sv1, StringView sv2);
 
-StringView sv_chop_until_delim(StringView sv, const char* delim);
+StringView sv_chop_until_delim(StringView sv, const char delim);
 
 StringView sv_extend(StringView sv, const char* cstr);
 
