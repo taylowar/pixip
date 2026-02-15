@@ -1,5 +1,8 @@
 #include <stdint.h>
 
+#define SV_IMPLEMENTATION
+#include "sv.h"
+
 #define SL_IMPLEMENTATION
 #include "settings_loader.h"
 
