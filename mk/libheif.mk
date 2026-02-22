@@ -16,7 +16,7 @@ LIBHEIF_TAR := $(TP)/libheif-$(LIBHEIF_VERSION).tar.gz
 # -----------------------------
 # Phony targets
 # -----------------------------
-.PHONY: linux_source_build_libheif mingw_source_build_libheif clean-libheif
+.PHONY: linux_source_build_libheif mingw_source_build_libheif
 
 # -----------------------------
 # Extraction

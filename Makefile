@@ -38,8 +38,7 @@ JOBS := $(shell nproc)
 .PHONY: all linux windows clean \
         linux_source_build_libde265 mingw_source_build_libde265 \
         linux_source_build_libheif mingw_source_build_libheif \
-        linux_source_build_libjpeg mingw_source_build_libjpeg \
-        clean-libde265 clean-libheif clean-libjpeg
+        linux_source_build_libjpeg mingw_source_build_libjpeg
 
 # -----------------------------
 # All

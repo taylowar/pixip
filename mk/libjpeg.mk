@@ -15,7 +15,7 @@ LIBJPEG_TAR := $(TP)/libjpeg-$(LIBJPEG_VERSION).tar.gz
 # -----------------------------
 # Phony targets
 # -----------------------------
-.PHONY: linux_source_build_libjpeg mingw_source_build_libjpeg clean-libjpeg
+.PHONY: linux_source_build_libjpeg mingw_source_build_libjpeg
 
 # -----------------------------
 # Extraction
