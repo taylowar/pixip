@@ -18,42 +18,15 @@
 #include "settings_loader.h"
 
 #ifdef WIN32
-#include "../build/windows/libheif/include/libheif/heif.h"
-#endif
+#endif // WIN32
+
 #ifdef __linux__
-#include "../build/linux/libheif/include/libheif/heif_context.h"
-#include "../build/linux/libheif/include/libheif/heif_decoding.h"
-#include "../build/linux/libheif/include/libheif/heif_image.h"
-#include "../build/linux/libheif/include/libheif/heif_image_handle.h"
 #include "../build/linux/libjpeg/include/jpeglib.h"
-#endif
+#endif // __linux__
+
+#include "./img_dec/img_dec.h"
 
 #include "./dmon/dmon.h"
-
-void decode_heif_image(const char* file_path, heif_image **himage)
-{
-    heif_context *ctx = heif_context_alloc();
-    heif_error err = heif_context_read_from_file(ctx, file_path, NULL);
-    if (err.code != heif_error_Ok) {
-        fprintf(stderr, "Failed to read HEIF: %s\n", err.message);
-        exit(1);
-    }
-
-    struct heif_image_handle *handle;
-    err = heif_context_get_primary_image_handle(ctx, &handle);
-    if (err.code != heif_error_Ok) {
-        fprintf(stderr, "Failed to get primary image: %s\n", err.message);
-        exit(1);
-    }
-
-    err = heif_decode_image(handle, himage, heif_colorspace_RGB, heif_chroma_interleaved_RGB, NULL);
-    if (err.code != heif_error_Ok) {
-        fprintf(stderr, "Failed to decode image: %s\n", err.message);
-        exit(1);
-    }
-    heif_context_free(ctx);
-    heif_image_handle_release(handle);
-}
 
 typedef struct {
     char file_path[512];
@@ -120,7 +93,7 @@ typedef struct {
 void heif_to_abstract(File dfile, AbstractImage *aimg)
 {
     heif_image *himage;
-    decode_heif_image(dfile.file_path, &himage);
+    imgdec_decode_heif_image(dfile.file_path, &himage);
 
     int width = heif_image_get_width(himage, heif_channel_interleaved);
     int height = heif_image_get_height(himage, heif_channel_interleaved);
