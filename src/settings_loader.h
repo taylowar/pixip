@@ -35,26 +35,28 @@ void sl_read_settings_from_file(const char* settings_file_path, SL_Settings *set
             StringView kv_pair = sv_chop_until_delim(sv, ';');
             // determine setting key (before '=')
             StringView key = sv_chop_until_delim(kv_pair, '=');
-            // determine setting value (after '=')
-            const char* value = "aboba";
+            StringView value = {
+                .size = kv_pair.size - key.size - 1, // -1 becaue we skip ';' on the end
+                .data = kv_pair.data + key.size + 1, // +1 becaue we skip '=" on the begining
+            };
             // store parsed settings data
             if (sv_equals(key, SV("monitor_dir_path"))) {
                 #ifdef TALLOC_H_
-                settings->monitor_dir_path = (char*)talloc_reserve(5+1);
+                settings->monitor_dir_path = (char*)talloc_reserve(value.size+1);
                 #else
                 printf("[SettingLoader] WARN: Using `malloc` instead of `talloc`. Did you free the string?\n");
-                settings->monitor_dir_path = (char*)malloc(5+1);
+                settings->monitor_dir_path = (char*)malloc(value.size+1);
                 #endif // TALLOC_H_
-                snprintf(settings->monitor_dir_path, 5+1, "%s", value);
+                snprintf(settings->monitor_dir_path, value.size+1, "%s", value.data);
             }
             else if (sv_equals(key, SV("trash_bin_path"))) {
                 #ifdef TALLOC_H_
-                settings->trash_bin_path = (char*)talloc_reserve(5+1);
+                settings->trash_bin_path = (char*)talloc_reserve(value.size+1);
                 #else
                 printf("[SettingLoader] WARN: Using `malloc` instead of `talloc`. Did you free the string?\n");
-                settings->trash_bin_path = (char*)malloc(5+1);
+                settings->trash_bin_path = (char*)malloc(value.size+1);
                 #endif // TALLOC_H_
-                snprintf(settings->trash_bin_path, 5+1, "%s", value);
+                snprintf(settings->trash_bin_path, value.size+1, "%s", value.data);
             } else {
                 fprintf(
                     stderr,
