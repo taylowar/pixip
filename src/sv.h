@@ -28,6 +28,7 @@ StringView sv_extend(StringView sv, const char* cstr);
 
 void sv_trim_back(StringView *sv);
 
+#define SV_IMPLEMENTATION
 #ifdef SV_IMPLEMENTATION
 
 StringView sv_from_cstr(const char *cstr, size_t size)
@@ -38,6 +39,8 @@ StringView sv_from_cstr(const char *cstr, size_t size)
     return sv;
 }
 
+// (Tilen 06.03.2026) WARNING: This assumes no repeating characters in word
+// (Tilen 06.03.2026) TODO: Use a suffix tree :) This would be cool
 bool cstr_ends_with(const char* cstr, const char* ends)
 {
     char ch = ends[0];
@@ -87,6 +90,29 @@ StringView sv_chop_until_delim(StringView sv, const char delim)
         .data = sv.data
     };
     return out;
+}
+
+// (Tilen 06.03.2026) WARNING: This assumes no repeating characters in word
+// (Tilen 06.03.2026) TODO: Use a suffix tree :) This would be cool
+bool sv_chop_until_word(StringView *sv, const char* ends)
+{
+    char ch = ends[0];
+    size_t i = sv->size-1;
+    while (i > 0) {
+        if (sv->data[i] == ch) {
+            break;
+        }
+        i--;
+    }
+    if (i == 0) return false;
+    assert(sv->size-i==strlen(ends)); 
+    for (size_t j=0;j<strlen(ends);++j) {
+        if (sv->data[i+j] != ends[j]) {
+            return false;
+        }
+    }
+    sv->size = i;
+    return true;
 }
 
 void sv_trim_back(StringView *sv)

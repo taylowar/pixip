@@ -114,7 +114,14 @@ void heif_to_abstract(File dfile, AbstractImage *aimg)
 
 void abstract_to_jpeg(AbstractImage aimg, unsigned int quality) 
 {
-    StringView no_ext_name = sv_chop_until_delim(SV(aimg.file_path), '.');
+    StringView no_ext_name = sv_from_cstr(aimg.file_path, strlen(aimg.file_path));
+    if (cstr_ends_with(aimg.file_path, ".heic")) {
+        sv_chop_until_word(&no_ext_name, ".heic");
+    } else if (cstr_ends_with(aimg.file_path, ".heif")) {
+        sv_chop_until_word(&no_ext_name, ".heif");
+    } else {
+        assert(0 && "Unexpected abstract image extension not supported");
+    }
     char *jpeg_file_name = (char*)malloc(no_ext_name.size + 1 + 4 + 1);
     snprintf(jpeg_file_name, no_ext_name.size + 1 + 4 + 1, SV_Fmt".jpeg", SV_ARG(no_ext_name));
     jpeg_compress_struct cinfo;
