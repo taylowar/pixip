@@ -28,6 +28,19 @@
 
 #include "./dmon/dmon.h"
 
+bool pixip_is_heic_file(StringView file_path)
+{
+    StringView heic_ext = SV(".heic");
+    return sv_ends_with(file_path, heic_ext);
+}
+
+bool pixip_is_heif_file(StringView file_path)
+{
+    StringView heif_ext = SV(".heif");
+    return sv_ends_with(file_path, heif_ext);
+}
+
+
 typedef struct {
     char file_path[512];
     char file_name[512];
@@ -114,18 +127,25 @@ void heif_to_abstract(File dfile, AbstractImage *aimg)
 
 void abstract_to_jpeg(AbstractImage aimg, unsigned int quality) 
 {
-    StringView no_ext_name = sv_from_cstr(aimg.file_path, strlen(aimg.file_path));
-    if (cstr_ends_with(aimg.file_path, ".heic")) {
-        sv_chop_until_word(&no_ext_name, ".heic");
-    } else if (cstr_ends_with(aimg.file_path, ".heif")) {
-        sv_chop_until_word(&no_ext_name, ".heif");
+    StringView file_path   = SV(aimg.file_path);
+    StringView file_name;
+    StringView file_ext;
+    if (pixip_is_heic_file(file_path)) {
+        file_name = sv_chop_until_word(&file_path, SV(".heic"));
+        file_ext = file_path;
+    } else if (pixip_is_heif_file(file_path)) {
+        file_name = sv_chop_until_word(&file_path, SV(".heif"));
+        file_ext = file_path;
     } else {
         assert(0 && "Unexpected abstract image extension not supported");
     }
-    char *jpeg_file_name = (char*)malloc(no_ext_name.size + 1 + 4 + 1);
-    snprintf(jpeg_file_name, no_ext_name.size + 1 + 4 + 1, SV_Fmt".jpeg", SV_ARG(no_ext_name));
+
+    char *jpeg_file_name = (char*)malloc(file_name.size + 1 + 4 + 1);
+    snprintf(jpeg_file_name, file_name.size + 1 + 4 + 1, SV_FMT".jpeg", SV_ARG(file_name));
     jpeg_compress_struct cinfo;
     jpeg_error_mgr jerr;
+
+    printf("writing `%s`\n", jpeg_file_name);
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
@@ -182,7 +202,8 @@ int main(void)
                     fda_dir_collect(settings.monitor_dir_path, &files);
                     for (size_t i=0;i<files.size;++i) {
                         File dfile = files.es[i];
-                        if (cstr_ends_with(dfile.file_name, ".heic") || cstr_ends_with(dfile.file_name, ".heif")) {
+                        StringView dfile_name_sv = SV(dfile.file_name);
+                        if (pixip_is_heic_file(dfile_name_sv) || pixip_is_heif_file(dfile_name_sv)) {
                             AbstractImage aimg;
                             heif_to_abstract(dfile, &aimg);
                             abstract_to_jpeg(aimg, 10);
@@ -193,17 +214,18 @@ int main(void)
                         }
                     }
                     printf("DONE!\n");
+                    talloc_reset();
                     job_mark = false;
                 }
             }
             // event trigger when a heic image is added
             if (result.fso_type == dmon_fso_FILE) {
-                talloc_reset();
-                if (cstr_ends_with(result.name, ".heic") || cstr_ends_with(result.name, ".heif")) {
+                StringView result_name_sv = SV(result.name);
+                if (pixip_is_heic_file(result_name_sv) || pixip_is_heif_file(result_name_sv)) {
                     start = time(0);
                     job_mark = true;
                 } 
-                else if (cstr_ends_with(result.name, ".jpeg")) {
+                else if (sv_ends_with(result_name_sv, SV(".jpeg"))) {
                     // TODO: introduce custom log
                     printf("[pixip] INFO: ignoring `%s`\n", result.name);
                 }

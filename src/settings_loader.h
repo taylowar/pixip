@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <fstream>
 
-#include "sv.h" // This assumes `sv.h` is included in the `main` file
+#include "sv.h" // This assumes `sv.h` is implemented in the `main` file 
 
 typedef struct {
     char* monitor_dir_path;
@@ -30,14 +30,14 @@ void sl_read_settings_from_file(const char* settings_file_path, SL_Settings *set
         char buf[buf_size];
         while (file_stream.getline(buf, buf_size)) {
             StringView sv = SV(buf);
-            sv_trim_back(&sv);
+            sv_trim_end(&sv);
             // validate correct format of key value pair
-            StringView kv_pair = sv_chop_until_delim(sv, ';');
+            StringView kv_pair = sv_chop_until_delim(&sv, ';');
             // determine setting key (before '=')
-            StringView key = sv_chop_until_delim(kv_pair, '=');
+            StringView key = sv_chop_until_delim(&kv_pair, '=');
             StringView value = {
-                .size = kv_pair.size - key.size - 1, // -1 becaue we skip ';' on the end
-                .data = kv_pair.data + key.size + 1, // +1 becaue we skip '=" on the begining
+                .data = kv_pair.data + 1, // +1 becaue we skip '="
+                .size = kv_pair.size - 1, // -1 becaue we skip '='
             };
             // store parsed settings data
             if (sv_equals(key, SV("monitor_dir_path"))) {
